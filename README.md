@@ -1,5 +1,7 @@
 # opencode-go-usage
 
+OpenCode Go usage in your TUI: rolling 5h, weekly and monthly limits with reset countdowns. One click or `alt+u`.
+
 Модальное окно с расходом подписки **OpenCode Go** прямо в TUI OpenCode:
 rolling 5 часов, неделя и месяц, с процентами и временем до сброса.
 
