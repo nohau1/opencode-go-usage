@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "opencode-go-usage",
+  "version": "1.0.0",
+  "description": "OpenCode Go usage modal for the OpenCode TUI: rolling 5h / weekly / monthly limits, one click or one key away.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Andrey (nohau1)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nohau1/opencode-go-usage.git"
+  },
+  "homepage": "https://github.com/nohau1/opencode-go-usage#readme",
+  "bugs": {
+    "url": "https://github.com/nohau1/opencode-go-usage/issues"
+  },
+  "main": "./src/tui.tsx",
+  "exports": {
+    "./tui": "./src/tui.tsx"
+  },
+  "files": [
+    "src",
+    "tui.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "opencode-v2",
+    "tui",
+    "usage",
+    "opencode-go",
+    "quota"
+  ],
+  "peerDependencies": {
+    "@opencode/plugin": ">=2.1.0",
+    "@opentui/core": ">=0.6.6",
+    "@opentui/solid": ">=0.6.6",
+    "solid-js": ">=1.9.0"
+  },
+  "devDependencies": {
+    "@opencode/plugin": ">=2.1.0",
+    "@opentui/core": "^0.6.8",
+    "@opentui/solid": "^0.6.8",
+    "@types/node": "^22.0.0",
+    "solid-js": "^1.9.0",
+    "typescript": "^5.6.0"
+  }
+}
