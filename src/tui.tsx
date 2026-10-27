@@ -131,6 +131,38 @@ function formatTime(ms: number): string {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
+function pluralDays(value: number): string {
+  const mod10 = value % 10
+  const mod100 = value % 100
+  if (mod10 === 1 && mod100 !== 11) return "день"
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "дня"
+  return "дней"
+}
+
+/**
+ * The monthly allowance resets on the subscription renewal date, so the
+ * monthly `resetsAt` is the best available "subscription ends in" value.
+ */
+function daysUntil(resetsAt: number | null): number | null {
+  if (resetsAt === null) return null
+  return Math.max(0, Math.floor((resetsAt - Date.now()) / 86_400_000))
+}
+
+function subscriptionLabel(resetsAt: number | null): string {
+  if (resetsAt === null) return ""
+  if (resetsAt <= Date.now()) return "подписка истекла"
+  const days = daysUntil(resetsAt) ?? 0
+  if (days === 0) return "подписка истекает сегодня"
+  return `подписка ещё ${days} ${pluralDays(days)}`
+}
+
+function subscriptionColor(theme: Theme, resetsAt: number | null) {
+  const days = daysUntil(resetsAt)
+  if (days !== null && days <= 3) return theme.text.feedback.error.base
+  if (days !== null && days <= 7) return theme.text.feedback.warning.base
+  return theme.text.muted
+}
+
 function dataDirectories(): string[] {
   const directories: string[] = []
   const explicit = process.env.OPENCODE_DATA_DIR
@@ -448,9 +480,18 @@ export default Plugin.define({
             <text fg={theme.text.base} attributes={1}>
               OpenCode Go
             </text>
-            <text fg={theme.text.muted} onMouseDown={() => close()}>
-              {" ✕ "}
-            </text>
+            <box flexDirection="row">
+              <Show when={usage()}>
+                {(data) => (
+                  <text fg={subscriptionColor(theme, data().monthly.resetsAt)}>
+                    {subscriptionLabel(data().monthly.resetsAt)}
+                  </text>
+                )}
+              </Show>
+              <text fg={theme.text.muted} onMouseDown={() => close()}>
+                {"  ✕ "}
+              </text>
+            </box>
           </box>
 
           <box border={["bottom"]} borderColor={theme.border.base} height={1} />
