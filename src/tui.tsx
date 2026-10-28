@@ -319,6 +319,35 @@ export default Plugin.define({
       }
     }
 
+    async function consoleKey(): Promise<string | undefined> {
+      try {
+        const client = context.client as any
+        const response = await client?.credential?.list?.()
+        const entries = Array.isArray(response) ? response : response?.data
+        if (!Array.isArray(entries)) return undefined
+
+        const active = entries.filter(
+          (candidate: any) =>
+            candidate?.active !== false &&
+            candidate?.value?.type === "key" &&
+            typeof candidate.value.key === "string" &&
+            candidate.value.key.length > 0,
+        )
+
+        // The Go plan key lives under "opencode-go"; "opencode" is the
+        // general Console key and may not be valid for the Go usage endpoint.
+        const preferred = active.find(
+          (candidate: any) => candidate?.integrationID === "opencode-go",
+        )
+        const fallback = active.find(
+          (candidate: any) => candidate?.integrationID === "opencode",
+        )
+        return (preferred ?? fallback)?.value?.key
+      } catch {
+        return undefined
+      }
+    }
+
     async function fetchUsage(): Promise<Usage> {
       if (serverApiAvailable()) {
         try {
@@ -330,8 +359,20 @@ export default Plugin.define({
       }
 
       const key = resolveKey()
+      if (key) {
+        try {
+          return await loadFromZen(key)
+        } catch (cause) {
+          if (!(cause instanceof AuthError)) throw cause
+        }
+      }
+
+      // OpenCode 2 keeps credentials in the server, so auth.json may still hold
+      // an expired Go key. Fall back to the active Console credential.
+      const fallback = await consoleKey()
+      if (fallback && fallback !== key) return loadFromZen(fallback)
       if (!key) throw new MissingKeyError()
-      return loadFromZen(key)
+      throw new AuthError()
     }
 
     async function doRefresh(): Promise<RefreshResult> {
@@ -414,7 +455,6 @@ export default Plugin.define({
 
     function startFooterTimer(): void {
       if (footerTimer) return
-      if (!serverApiAvailable() && !resolveKey()) return
       footerTimer = setInterval(() => {
         void refresh()
       }, footerRefreshMs)
